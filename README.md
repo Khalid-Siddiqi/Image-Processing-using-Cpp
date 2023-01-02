@@ -27,7 +27,7 @@ But there are not many products in the market that solve the ever-increasing dem
 Our project will utilize the advanced concept of data structure and algorithms to create and apply complex calculations on large data sets. 
 This project will help user to process his/her image files to add filters, transformation, color grading, reflection, and many more features upon them.
 The following project will also utilize advanced concepts of Linear algebra to enhance the precision and working of the program.
-##Refrence Books:
+## Refrence Books:
 These books prove to be a lot of help for us:
 *	**Learning Image Processing with OpenCV** by 
 **Gloria Bueno García Oscar Deniz Suarez José Luis Espinosa Aranda Jesus Salido Tercero Ismael Serrano Gracia Noelia Vállez Enano**
