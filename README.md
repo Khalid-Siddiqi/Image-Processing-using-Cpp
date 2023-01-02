@@ -18,7 +18,7 @@ These are previously mentioned features in the proposal:
 *	Blurring
 *	Cropping
 ## Tools and Technology:
-The language used will be C++ and IDE Visual Studio and Visual Studio Code were primarily used,
+The language used was C++ and IDE **Visual Studio** and **Visual Studio Code** were primarily used,
 as opposed to the proposed DEV CPP IDE was unable to support the libraries that were required in this project.
 We used the OpenCV library and CMAKE library in the project.
 ## Project discription:
@@ -29,6 +29,6 @@ This project will help user to process his/her image files to add filters, trans
 The following project will also utilize advanced concepts of Linear algebra to enhance the precision and working of the program.
 ##Refrence Books:
 These books prove to be a lot of help for us:
-*	Learning Image Processing with OpenCV by 
-Gloria Bueno García Oscar Deniz Suarez José Luis Espinosa Aranda Jesus Salido Tercero Ismael Serrano Gracia Noelia Vállez Enano
-*	Elementary Linear Algebra 12 Edition by HOWARD ANTON and ANTON KAUL
+*	**Learning Image Processing with OpenCV** by 
+**Gloria Bueno García Oscar Deniz Suarez José Luis Espinosa Aranda Jesus Salido Tercero Ismael Serrano Gracia Noelia Vállez Enano**
+*	**Elementary Linear Algebra 12 Edition** by **HOWARD ANTON and ANTON KAUL**
