@@ -1,0 +1,708 @@
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <Windows.h>
+#include <opencv2\opencv.hpp>
+#include <opencv2\highgui.hpp>
+#include <opencv2\imgproc.hpp>
+using namespace cv;
+using namespace std;
+static Mat img;
+static Point origin;
+static Rect selection;
+static bool selectionObject = false;
+static bool objectCropped = false;
+static Mat imgClone;
+
+class image_processing {
+
+    
+public:
+    Mat image;
+
+    //Input image
+    void input_image() {
+
+        int myimg;
+        string path;
+
+        cout << "\n================ Pictures ===================\n\n";
+        cout << "\t  | (1) Nature" << endl << endl;
+        cout << "\t  | (2) gold" << endl << endl;
+       cout << "\t  | (2) gold" << endl << endl;
+        cin >> myimg;
+
+        
+            if (!cin) {
+                cout << "\nWrong choice! Enter again....\n " << endl;
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << endl << endl;
+                //continue;
+            }
+
+
+            switch (myimg) {
+            case 1:
+                image = imread("nature.jpg");
+                break;
+
+            case 2:
+                image = imread("gold.jpg");
+                break;
+
+            case 3:
+                break;
+
+            default:
+                break;
+
+            }
+
+
+            cout << "\n\nloading";
+            for (int i = 0; i < 4; i++) {
+                cout << " .";
+                Sleep(3);
+            }
+
+            cout << "\n\nImage readed successfully..........";
+        
+    }
+
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+    //Output image
+    int output_image() {
+
+        if (image.empty()) {
+
+            cout << "Image file not found....." << endl;
+
+            cin.get();
+            return -1;
+        }
+        
+        imshow("my image",image);
+        waitKey(0);
+        
+    }
+
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+    //case1: Image shear
+    void forward_shear() {
+
+        Mat image2(image.rows, image.cols + image.rows + 1, image.type());
+
+        int constant = image.rows;
+
+        for (int x = 0; x < image2.rows; x++) {
+            Vec3b* pixrow = image.ptr<Vec3b>(x);
+            Vec3b* pixsolrow1 = image2.ptr<Vec3b>(x);
+
+            for (int j = 0; j < image.cols; j++) {
+                pixsolrow1[j + constant] = pixrow[j];
+            }
+            constant--;
+        }
+
+        imshow("shear image", image2);
+        waitKey(0);
+    }
+
+
+    void backward_shear() {
+        Mat image2(image.rows, image.cols + image.rows + 1, image.type());
+
+        int constant = 0;
+
+        for (int x = 0; x < image2.rows; x++) {
+            Vec3b* pixrow = image.ptr<Vec3b>(x);
+            Vec3b* pixsolrow1 = image2.ptr<Vec3b>(x);
+
+            for (int j = 0; j < image.cols; j++) {
+                pixsolrow1[j + constant] = pixrow[j];
+            }
+            constant++;
+        }
+
+        imshow("Backward shear image", image2);
+        waitKey(0);
+    }
+
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+    // Case2: Rotate image
+    void rotate(Mat img, float b) {
+        double angle = b;
+
+    //    // get the center coordinates of the image to create the 2D rotation matrix
+        Point2f center((img.cols - 1) / 2.0, (img.rows - 1) / 2.0);
+    //    // using getRotationMatrix2D() to get the rotation matrix
+        Mat rotation_matix = getRotationMatrix2D(center, angle, 1.0);
+
+    //    // we will save the resulting image in rotated_image matrix
+        Mat rotated_image;
+        // rotate the image using warpAffine
+        warpAffine(img, rotated_image, rotation_matix, img.size());
+        imshow("Rotated image", rotated_image);
+        // wait indefinitely, press any key on keyboard to exit
+        waitKey(0);
+        // save the rotated image to disk
+        imwrite("rotated_im.jpg", rotated_image);
+    }
+
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+    // Case3 Image Blur
+    void ImageBlurring() {
+
+        Mat image2 = image.clone();
+
+        for (int x = 0; x < image.rows - 2; x++) {
+
+            Vec3b* pixrow = image.ptr<Vec3b>(x);
+            Vec3b* pixrow1 = image.ptr<Vec3b>(x + 1);
+            Vec3b* pixrow2 = image.ptr<Vec3b>(x + 2);
+
+
+            Vec3b* pixsolrow1 = image2.ptr<Vec3b>(x + 1);
+
+            for (int y = 0; y < image.cols - 2; y++) {
+                pixsolrow1[y + 1] = pixrow[y + 2] * (double)1 / 9 + pixrow[y + 1] * (double)1 / 9 + pixrow[y] * (double)1 / 9 +
+                    pixrow1[y + 2] * (double)1 / 9 + pixrow1[y + 1] * (double)1 / 9 + pixrow1[y] * (double)1 / 9 +
+                    pixrow[y + 2] * (double)1 / 9 + pixrow[y + 1] * (double)1 / 9 + pixrow[y] * (double)1 / 9;
+            }
+        }
+
+        imshow("brighter", image2);
+        waitKey(0);
+
+    }
+
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+    //case4: Image Enhacement
+    void bright() {
+          Mat image2;
+        image2.create(image.rows, image.cols, image.type());
+
+    //    //         | 0,-1, 0 |
+    //    //Kernel = |-1, 5,-1 |
+    //    //         | 0,-1, 0 |
+       for (int i = 1; i < image.rows - 2; i++) {
+            Vec3b* K_row1 = image.ptr<Vec3b>(i);
+            Vec3b* K_row2 = image.ptr<Vec3b>(i + 1);
+            Vec3b* K_row3 = image.ptr<Vec3b>(i + 2);
+            Vec3b* output = image2.ptr<Vec3b>(i + 1);
+
+            for (int j = 1; j < image.cols - 2; j++) {
+                output[j] = (K_row1[j] * 0 + K_row1[j + 1] * -1 / 5 + K_row1[j + 2] * 0) + //1st row till 3 columns
+                    (K_row2[j] * -1 / 5 + K_row2[j + 1] * 5 / 5 + K_row2[j + 2] * -1 / 5) + //2nd row till 3 columns
+                    (K_row3[j] * 0 + K_row3[j + 1] * -1 / 2 + K_row3[j + 2] * 0); //3rd row till 3 columns
+            }
+        }
+
+        image2 = image2 + image; 
+        imshow("brighter", image2);
+        waitKey(0);
+    }
+    //
+    ////xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+    void sharpen2D() {
+        Mat image2;
+      image2.create(image.rows, image.cols, image.type());
+      Mat kernel = (Mat_ < double >(3, 3) << 0, -1, 0,
+           -1, 5, -1,
+            0, -1, 0);
+
+        //filter the image
+        filter2D(image, image2, -1, kernel);
+        imshow("sharpen", image2);
+    }
+
+    ////xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+    ////case5: Image Reflection
+    void Reflect() {
+          int col = image.cols-1;
+        int row = image.rows - 1;
+        Mat Reflected_image =image.clone();
+        
+        for (int i = 0; i < image.rows; i++) {
+            Vec3b* pixel_row = image.ptr <Vec3b>(i);
+            Vec3b*  Reflect_pixels = Reflected_image.ptr<Vec3b>(i);
+             for (int j = 0; j < image.cols; j++)
+                Reflect_pixels[j] = pixel_row[col - j];
+        }
+        imshow("invert", Reflected_image);
+        waitKey(0);
+    }
+
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+    //case6: Image Denoising
+    void Salt_and_Pepper_removal() {
+
+        Mat image2 = image.clone();
+        medianBlur(image, image2, 3);
+        imshow("salt", image2);
+        waitKey(0);
+    }
+
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+    
+
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+  
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        
+  static void onMouse(int event, int x, int y, int flags, void*) {
+
+
+       if (selectionObject) {
+           selection.x = min(x, origin.x);
+           selection.y = min(y, origin.y);
+           selection.width = abs(x - origin.x);
+           selection.height = abs(y - origin.y);
+
+           selection &= Rect(0, 0, img.cols, img.rows);
+        }
+
+        switch (event) {
+        case EVENT_LBUTTONDOWN:
+            origin = Point(x, y);
+            selection = Rect(x, y, 0, 0);
+            selectionObject = true;
+            break;
+        case EVENT_LBUTTONUP:
+            selectionObject = false;
+            if (selection.width > 0 && selection.height > 0)
+               objectCropped = true;
+        default:
+            break;
+        }
+        img.copyTo(imgClone);
+       //Draw a Rectangle while cropping image
+        rectangle(imgClone, selection, Scalar(0, 0, 225), 1, 8, 0);
+        imshow("image", imgClone);
+       // selectionObject = false;
+
+    }
+
+
+    void crop() {
+       img = image.clone();
+        namedWindow("image", WINDOW_AUTOSIZE);
+        setMouseCallback("image", onMouse);
+        imshow("image", img);
+        int d = 1;
+        while (d == 1) {
+            if (objectCropped) {
+                Mat crop = img(selection);
+                namedWindow("crop", WINDOW_AUTOSIZE);
+                imshow("crop", crop);
+               d = 0;
+            }
+            waitKey(10);
+        }
+        waitKey(0);
+    }
+
+///    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+    //  image Blurring [ 3x3 kernel ]
+
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+//
+    // Binary Image 1 using [3x3 kernel]
+
+  void SobelOperatorx(Mat& image2) {
+        for (int x = 0; x < image.rows - 2; x++) {
+            Vec3b* pixrow = image.ptr<Vec3b>(x);
+            Vec3b* pixrow1 = image.ptr<Vec3b>(x + 1);
+            Vec3b* pixrow2 = image.ptr<Vec3b>(x + 2);
+
+            Vec3b* pixsolrow1 = image2.ptr<Vec3b>(x + 1);
+
+            for (int y = 0; y < image.cols - 2; y++) {
+                pixsolrow1[y + 1] = pixrow[y]*(double)1 / 4 + pixrow[y + 1]*(double)0 - pixrow[y + 2] * (double)1 / 4 +
+                    pixrow1[y]*(double)1 / 2 + pixrow1[y + 1]*(double)0 - pixrow1[y + 2] * (double)1 / 2 +
+                    pixrow2[y]*(double)1 / 4 + pixrow2[y + 1]*(double)0 - pixrow2[y + 2] * (double)1 / 4;
+            }
+
+        }
+
+        image2 *= 2;
+
+    }
+
+    void SobelOperatory( Mat& image2) {
+
+
+        for (int x = 0; x < image.rows - 2; x++) {
+            Vec3b* pixrow = image.ptr<Vec3b>(x);
+            Vec3b* pixrow1 = image.ptr<Vec3b>(x + 1);
+            Vec3b* pixrow2 = image.ptr<Vec3b>(x + 2);
+
+            Vec3b* pixsolrow1 = image2.ptr<Vec3b>(x + 1);
+
+            for (int y = 0; y < image.cols - 2; y++) {
+                pixsolrow1[y + 1] = pixrow[y]*(double)1 / 4 + pixrow[y + 1]*(double)1 / 2 + pixrow[y + 2] * (double)1 / 4 +
+                    pixrow1[y]*(double)0 + pixrow1[y + 1]*(double)0 + pixrow1[y + 2] * (double)0 -
+                    pixrow2[y]*(double)1 / 4 - pixrow2[y + 1]*(double)1 / 2 - pixrow2[y + 2] * (double)1 / 4;
+            }
+
+        }
+
+        image2 *= 2;
+
+    }
+//
+//    //  Binary Image 2 with [ 3x3 kernel ]
+//
+//    void BinaryImageLite(Mat& image, Mat& image2) {
+//        for (int x = 0; x < image.rows - 2; x++) {
+//
+//            Vec3b* pixrow = image.ptr<Vec3b>(x);
+//            Vec3b* pixrow1 = image.ptr<Vec3b>(x + 1);
+//            Vec3b* pixrow2 = image.ptr<Vec3b>(x + 2);
+//
+//
+//            Vec3b* pixsolrow1 = image2.ptr<Vec3b>(x + 1);
+//
+//            // Binary Image 2
+//
+//            for (int y = 0; y < image.cols - 2; y++) {
+//                pixsolrow1[y + 1] = pixrow[y] * (double)1 / 4 + pixrow[y + 1] * (double)1 / 4 + pixrow[y + 2] * (double)1 / 4 +
+//                    pixrow1[y] * (double)0 + pixrow1[y + 1] * (double)0 - pixrow1[y + 2] * (double)0 -
+//                    pixrow2[y] * (double)1 / 4 - pixrow2[y + 1] * (double)1 / 4 - pixrow2[y + 2] * (double)1 / 4;
+//            }
+//
+//        }
+//
+//    }
+//
+//    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+//
+    void rotations() {
+       Mat image2=image.clone();
+
+        cv::transpose(image,image2);
+        imshow("leftrotate",image2);
+    }
+
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxx Filters xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+    void BlackBoard() {
+
+        Mat image2 = image.clone();
+        Mat image3 = image.clone();
+        Mat image4 = image.clone();
+
+
+         SobelOperatorx(image2);
+         SobelOperatory(image3);
+
+        multiply(image2, image2, image4);    // sqr img2
+        multiply(image3, image3, image2);   // sqr img3
+
+
+        add(image2, image, image3);
+        abs(image3);
+        sqrt(image3, image2);
+
+        cvtColor(image2, image3, COLOR_BGR2GRAY);
+        image2 = image3;
+        image2 = image2 / 1.25;
+
+        imshow("Black Board", image2);
+        waitKey(0);
+
+    }
+//
+//
+//    //  Wall Paint [ 3x3 kernel ]
+    void WallPaint() {
+        Mat image2 = image.clone();
+
+        for (int x = 0; x < image.rows - 2; x++) {
+
+            Vec3b* pixrow = image2.ptr<Vec3b>(x);
+            Vec3b* pixrow1 = image2.ptr<Vec3b>(x + 1);
+            Vec3b* pixrow2 = image2.ptr<Vec3b>(x + 2);
+
+            Vec3b* pixsolrow1 = image2.ptr<Vec3b>(x + 1);
+
+            for (int y = 0; y < image.cols - 2; y++) {
+
+                pixsolrow1[y + 1] = -pixrow[y] * 1 + pixrow[y + 1] * 0 + pixrow[y + 2] * 1 -
+                    pixrow1[y] * 1 + pixrow1[y + 1] * 0 + pixrow1[y + 2] * 1 -
+                    pixrow2[y] * 1 + pixrow2[y + 1] * 0 + pixrow2[y + 2] * 1;
+            }
+        }
+        imshow("Wall paint", image2);
+        cv::waitKey(0);
+
+    }
+//
+    void Autumn() {
+
+        Mat image2 = image.clone();
+        Mat image3 = image.clone();
+
+        //         | 0,-1, 0 |
+        //Kernel = |-1, 5,-1 |
+        //         | 0,-1, 0 |
+
+        // GaussianBlur(image2, image3,Size(5, 5) , 1);
+
+        for (int i = 0; i < image.rows - 2; i++) {
+            Vec3b* K_row1 = image2.ptr<Vec3b>(i);
+            Vec3b* K_row2 = image2.ptr<Vec3b>(i + 1);
+            Vec3b* K_row3 = image2.ptr<Vec3b>(i + 2);
+            Vec3b* output = image3.ptr<Vec3b>(i + 1);
+
+            for (int j = 0; j < image.cols; j++) {
+                output[j + 1] = (K_row1[j] * 0 + K_row1[j + 1] * -0.05 + K_row1[j + 2] * 0) + //1st row till 3 columns
+                    (K_row2[j] * -0.05 + K_row2[j + 1] * 0.7 + K_row2[j + 2] * -0.05) + //2nd row till 3 columns
+                    (K_row3[j] * 0 + K_row3[j + 1] * -0.05 + K_row3[j + 2] * 0); //3rd row till 3 columns
+            }
+        }
+
+         image3*= 2.25;
+        imshow("Autumn", image3);
+        cv::waitKey(0);
+    }
+//
+//
+//   
+
+};
+
+
+// Driver code
+
+int main(int argc, char** argv)
+{
+    
+    Mat back;
+    image_processing obj;
+    Mat image2 = obj.image.clone();
+    int choice,choice1;
+    bool breaker = true;
+    bool loop_break = true;
+
+    while (loop_break) {
+        cout << "======== Functions Of Program ========\n " << endl;
+        cout << "\t  | (1) Input an Image" << endl << endl;
+       cout << "\t  | (2) Display original Image" << endl << endl;
+        cout << "\t  | (3) Image Shear" << endl << endl;
+        cout << "\t  | (4) Image Rotation" << endl << endl;
+       cout << "\t  | (5) Image Blurring" << endl << endl;
+       cout << "\t  | (6) Image Enhacement" << endl << endl;
+       cout << "\t  | (7) Image Reflection" << endl << endl;
+       cout << "\t  | (8) Image Denoising" << endl << endl;
+       cout << "\t  | (9) Image Cropping" << endl << endl;
+       cout << "\t  | (10) Image Filtering" << endl << endl;
+       cout << "\t  | (11) Exit";
+
+
+       cout << "\n\nEnter Your Choice : ";
+       cin >> choice;
+       if (!cin) {
+           cout << "\nWrong choice! Enter again..... \n" << endl;
+           cin.clear();
+          cin.ignore(numeric_limits<streamsize>::max(), '\n');
+           cout << endl << endl;
+           system("pause");
+           system("cls");
+           continue;
+       }
+
+
+       switch (choice)
+       {
+       //Input
+       case 1:
+           obj.input_image();
+           break;
+               //Output
+       case 2:
+            obj.output_image();
+            break;
+            //    //shearing
+        case 3: {
+            breaker = true;
+            while (breaker) {
+                system("cls");
+               cout << "======== Functionalities Of Program ========\n " << endl;
+                cout << "\t     1) Forward Shear\n\n\t     2) Backward Shear\n\n\t     3) Back" << endl;
+                               cout << "\n\nEnter Your Choice : ";
+                cin >> choice1;
+                if (!cin) {
+                    cout << "\nWrong choice! Enter again....\n " << endl;
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << endl << endl;
+                    system("pause");
+                    system("cls");
+                   continue;
+               }
+                            switch (choice1)
+                {
+
+                case 1:
+                    obj.forward_shear();
+                    break;
+                case 2:
+                  obj.backward_shear();
+                   break;
+
+                case 3:
+                    breaker = false;
+                    break;
+                default:
+                    break;
+
+                }
+                cout << endl << endl;
+                system("pause");
+                system("cls");
+            }
+        }
+              break;
+                  //rotation
+        case 4: 
+            
+            float degree;
+            cout << "Enter the Degree of Rotation you want: ";
+            cin >> degree;
+            obj.rotate(obj.image, degree);
+            break;
+        
+             
+                //    //Blurring
+        case 5:
+            obj.ImageBlurring();
+            break;
+               //    //Enhancement
+        case 6: 
+            breaker = true;
+
+            while (breaker) {
+                system("cls");
+                cout << "======== Functionalities Of Program ========\n " << endl;
+                cout << "\t     1) Sharpness\n\n\t     2) Brightness\n\n\t     3) Back" << endl;
+                               cout << "\n\nEnter Your Choice : ";
+                cin >> choice1;
+                if (!cin) {
+                    cout << "\nWrong choice! Enter again.....\n" << endl;
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << endl << endl;
+                    system("pause");
+                    system("cls");
+                    continue;
+                }
+            switch (choice1)
+           {
+
+                case 1:
+                    obj.sharpen2D();
+                    break;
+                case 2:
+                   obj.bright();
+                    break;
+
+                case 3:
+                    breaker = false;
+                    break;
+
+                default:
+                    break;
+
+                }
+                cout << endl << endl;
+               system("pause");
+                system("cls");
+           }
+           break;
+              //Reflection
+        case 7:
+            obj.Reflect();
+           break;
+              //    //Denoising
+        case 8:
+            obj.Salt_and_Pepper_removal();
+            break;
+        
+        //Negative
+        case 9:
+            obj.crop();
+            //obj.negative();
+            break;
+              case 10:
+            breaker = true;
+            while (breaker) {
+                system("cls");
+               cout << "======== Image Filtering ========\n " << endl;
+                cout << "\t     1) Autumn\n\n\t     2) Black Board\n\n\t     2) Wall paint\n\n\t     4) Back" << endl;
+                cout << "\n\nEnter Your Choice : ";
+                cin >> choice1;
+                if (!cin) {
+                    cout << "\nWrong choice! Enter again....\n " << endl;
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << endl << endl;
+                    system("pause");
+                    system("cls");
+                    continue;
+                }
+                 switch (choice1)
+                {
+
+                case 1:
+                    obj.Autumn();
+                    break;
+                case 2:
+
+                    break;
+               case 3:
+                    obj.WallPaint();
+                    break;
+
+                case 4:
+                    breaker = false;
+                    break;
+                 default:
+                    break;
+
+                }
+                cout << endl << endl;
+                system("pause");
+               system("cls");
+           }
+       
+        break;
+        //Exit
+        case 11:
+            loop_break = false;
+            break;
+        default:
+            break;
+              //waitKey(0);
+              
+        }
+       cout << endl << endl;
+       system("pause");
+        system("cls");
+    }
+
+
+    return 0;
+}
