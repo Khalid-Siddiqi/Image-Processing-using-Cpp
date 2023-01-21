@@ -315,8 +315,87 @@ public:
     }
 
 ///    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+    //  image Blurring [ 3x3 kernel ]
+
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+//
+    // Binary Image 1 using [3x3 kernel]
+
+  void SobelOperatorx(Mat& image2) {
+        for (int x = 0; x < image.rows - 2; x++) {
+            Vec3b* pixrow = image.ptr<Vec3b>(x);
+            Vec3b* pixrow1 = image.ptr<Vec3b>(x + 1);
+            Vec3b* pixrow2 = image.ptr<Vec3b>(x + 2);
+
+            Vec3b* pixsolrow1 = image2.ptr<Vec3b>(x + 1);
+
+            for (int y = 0; y < image.cols - 2; y++) {
+                pixsolrow1[y + 1] = pixrow[y]*(double)1 / 4 + pixrow[y + 1]*(double)0 - pixrow[y + 2] * (double)1 / 4 +
+                    pixrow1[y]*(double)1 / 2 + pixrow1[y + 1]*(double)0 - pixrow1[y + 2] * (double)1 / 2 +
+                    pixrow2[y]*(double)1 / 4 + pixrow2[y + 1]*(double)0 - pixrow2[y + 2] * (double)1 / 4;
+            }
+
+        }
+
+        image2 *= 2;
+
+    }
+
+    void SobelOperatory( Mat& image2) {
+
+
+        for (int x = 0; x < image.rows - 2; x++) {
+            Vec3b* pixrow = image.ptr<Vec3b>(x);
+            Vec3b* pixrow1 = image.ptr<Vec3b>(x + 1);
+            Vec3b* pixrow2 = image.ptr<Vec3b>(x + 2);
+
+            Vec3b* pixsolrow1 = image2.ptr<Vec3b>(x + 1);
+
+            for (int y = 0; y < image.cols - 2; y++) {
+                pixsolrow1[y + 1] = pixrow[y]*(double)1 / 4 + pixrow[y + 1]*(double)1 / 2 + pixrow[y + 2] * (double)1 / 4 +
+                    pixrow1[y]*(double)0 + pixrow1[y + 1]*(double)0 + pixrow1[y + 2] * (double)0 -
+                    pixrow2[y]*(double)1 / 4 - pixrow2[y + 1]*(double)1 / 2 - pixrow2[y + 2] * (double)1 / 4;
+            }
+
+        }
+
+        image2 *= 2;
+
+    }
+//
+//    //  Binary Image 2 with [ 3x3 kernel ]
+//
+//    void BinaryImageLite(Mat& image, Mat& image2) {
+//        for (int x = 0; x < image.rows - 2; x++) {
+//
+//            Vec3b* pixrow = image.ptr<Vec3b>(x);
+//            Vec3b* pixrow1 = image.ptr<Vec3b>(x + 1);
+//            Vec3b* pixrow2 = image.ptr<Vec3b>(x + 2);
+//
+//
+//            Vec3b* pixsolrow1 = image2.ptr<Vec3b>(x + 1);
+//
+//            // Binary Image 2
+//
+//            for (int y = 0; y < image.cols - 2; y++) {
+//                pixsolrow1[y + 1] = pixrow[y] * (double)1 / 4 + pixrow[y + 1] * (double)1 / 4 + pixrow[y + 2] * (double)1 / 4 +
+//                    pixrow1[y] * (double)0 + pixrow1[y + 1] * (double)0 - pixrow1[y + 2] * (double)0 -
+//                    pixrow2[y] * (double)1 / 4 - pixrow2[y + 1] * (double)1 / 4 - pixrow2[y + 2] * (double)1 / 4;
+//            }
+//
+//        }
+//
+//    }
+//
+
+
+
 //    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 //
+
+
     void rotations() {
        Mat image2=image.clone();
 
