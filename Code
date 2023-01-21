@@ -132,6 +132,82 @@ public:
     }
 
     //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    // Case2: Rotate image
+    void rotate(Mat img, float b) {
+        double angle = b;
+
+    //    // get the center coordinates of the image to create the 2D rotation matrix
+        Point2f center((img.cols - 1) / 2.0, (img.rows - 1) / 2.0);
+    //    // using getRotationMatrix2D() to get the rotation matrix
+        Mat rotation_matix = getRotationMatrix2D(center, angle, 1.0);
+
+    //    // we will save the resulting image in rotated_image matrix
+        Mat rotated_image;
+        // rotate the image using warpAffine
+        warpAffine(img, rotated_image, rotation_matix, img.size());
+        imshow("Rotated image", rotated_image);
+        // wait indefinitely, press any key on keyboard to exit
+        waitKey(0);
+        // save the rotated image to disk
+        imwrite("rotated_im.jpg", rotated_image);
+    }
+
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+    // Case3 Image Blur
+    void ImageBlurring() {
+
+        Mat image2 = image.clone();
+
+        for (int x = 0; x < image.rows - 2; x++) {
+
+            Vec3b* pixrow = image.ptr<Vec3b>(x);
+            Vec3b* pixrow1 = image.ptr<Vec3b>(x + 1);
+            Vec3b* pixrow2 = image.ptr<Vec3b>(x + 2);
+
+
+            Vec3b* pixsolrow1 = image2.ptr<Vec3b>(x + 1);
+
+            for (int y = 0; y < image.cols - 2; y++) {
+                pixsolrow1[y + 1] = pixrow[y + 2] * (double)1 / 9 + pixrow[y + 1] * (double)1 / 9 + pixrow[y] * (double)1 / 9 +
+                    pixrow1[y + 2] * (double)1 / 9 + pixrow1[y + 1] * (double)1 / 9 + pixrow1[y] * (double)1 / 9 +
+                    pixrow[y + 2] * (double)1 / 9 + pixrow[y + 1] * (double)1 / 9 + pixrow[y] * (double)1 / 9;
+            }
+        }
+
+        imshow("brighter", image2);
+        waitKey(0);
+
+    }
+
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+    //case4: Image Enhacement
+    void bright() {
+          Mat image2;
+        image2.create(image.rows, image.cols, image.type());
+
+    //    //         | 0,-1, 0 |
+    //    //Kernel = |-1, 5,-1 |
+    //    //         | 0,-1, 0 |
+       for (int i = 1; i < image.rows - 2; i++) {
+            Vec3b* K_row1 = image.ptr<Vec3b>(i);
+            Vec3b* K_row2 = image.ptr<Vec3b>(i + 1);
+            Vec3b* K_row3 = image.ptr<Vec3b>(i + 2);
+            Vec3b* output = image2.ptr<Vec3b>(i + 1);
+
+            for (int j = 1; j < image.cols - 2; j++) {
+                output[j] = (K_row1[j] * 0 + K_row1[j + 1] * -1 / 5 + K_row1[j + 2] * 0) + //1st row till 3 columns
+                    (K_row2[j] * -1 / 5 + K_row2[j + 1] * 5 / 5 + K_row2[j + 2] * -1 / 5) + //2nd row till 3 columns
+                    (K_row3[j] * 0 + K_row3[j + 1] * -1 / 2 + K_row3[j + 2] * 0); //3rd row till 3 columns
+            }
+        }
+
+        image2 = image2 + image; 
+        imshow("brighter", image2);
+        waitKey(0);
+    }
+    //
 
     ////xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
