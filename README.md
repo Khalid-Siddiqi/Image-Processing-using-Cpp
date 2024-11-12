@@ -1,5 +1,5 @@
 # Image-Processing-using-Cpp
-One of the main goals of this project is to prove that Image processing in C++ is also possible.
+One of the main goals of this project is to prove that Image processing in C++ is also possible and feasible.
 We did research and found out that image processing in C++ is a lot simpler and easier to do.
 We took our logic from Linear Algebra while seeing the image as a Matrix the possibilities of possible outcomes are many 
 it's only a matter of a person’s imagination to define limits to it. 
